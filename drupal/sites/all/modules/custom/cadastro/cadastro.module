@@ -1,0 +1,125 @@
+<?php
+/**
+ * @file
+ * Code for the Cadastro feature.
+ */
+
+include_once 'cadastro.features.inc';
+
+/**
+ * Implementacao do hook_menu
+ * @return mixed
+ */
+function cadastro_menu(){
+	$items["cadastro_salvar"] = array(
+		'page callback' => 'cadastro_new',
+		'access arguments' => array('access content'),
+	);
+
+	$items["cadastro_show_raw/%"] = array(
+		'page callback' => 'cadastro_show_raw',
+		'access arguments' => array('access content'),
+		'page arguments' => array(1),
+	);
+	return $items;
+}
+
+/**
+ * Exite o cadastro para o consumo vai get
+ * @param $nid
+ */
+function cadastro_show_raw($nid) {
+	$node = node_load($nid);
+	print "Nome: " . $node->field_cadastro_nome[LANGUAGE_NONE][0]['value'];
+	print "<br />";
+	print "Sobrenome: " . $node->field_cadastro_sobrenome[LANGUAGE_NONE][0]['value'];
+}
+
+/**
+ * Cadastro via post
+ * @throws Exception
+ */
+function cadastro_new()
+{
+	$node = new stdClass();
+	$node->type = "cadastro";
+	node_object_prepare($node);
+	$node->field_cadastro_nome[LANGUAGE_NONE][0]['value'] = $_POST["nome"];
+	$node->field_cadastro_sobrenome[LANGUAGE_NONE][0]['value'] = $_POST["sobrenome"];
+	$node->title = $_POST["nome"] . " " . $_POST["sobrenome"];
+	node_save($node);
+	print $node->nid;
+}
+
+/**
+ * Implementacao de hook_block_info
+ * @return mixed
+ */
+function cadastro_block_info() {
+	$blocks["bloco_cadastro"] = array(
+		'info' => t('Bloco Cadastro'),
+		'region' => 'content',
+	);
+	return $blocks;
+}
+
+/**
+ * Impleentacao de hook_block_view
+ * @param string $delta
+ * @return array
+ */
+function cadastro_block_view($delta = '') {
+	$block = array();
+
+	switch ($delta) {
+		case 'bloco_cadastro':
+			$block["subject"] = "Cadastro Bloco";
+			$block["content"] = custom_block_content();
+			break;
+	}
+	return $block;
+}
+
+
+/**
+ * Retorna o conteúdo do bloco
+ * @return string
+ */
+function custom_block_content() {
+	$elements = drupal_get_form("custom_form");
+	$form = drupal_render($elements);
+
+	$output = '<a href="#" onclick="jQuery(\'#cadastro_form\').dialog({modal: true}); return false;">Cadastrar</a>';
+	$output .= '<div id="cadastro_content"></div>';
+	$output .= '<div style="display: none;" id="cadastro_form">' . $form . '</div>';
+	return $output;
+}
+
+/**
+ * Cadastro do form
+ * @param $form
+ * @param $form_state
+ * @return mixed
+ */
+function custom_form($form, &$form_state) {
+	drupal_add_js(drupal_get_path('module', 'cadastro') . '/cadastro.form.js');
+	drupal_add_js(drupal_get_path('module', 'cadastro') . '/jquery-ui.js');
+
+	$form["#executes_submit_callback"] = FALSE;
+	$form['#attributes'] = array('onclick' => 'return (false);');
+	$form['nome'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Nome'),
+	);
+	$form['sobrenome'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Sobrenome'),
+	);
+	$form['submit'] = array(
+		'#type' => 'button',
+		'#value' => t('Salvar'),
+	);
+	return $form;
+}
+
+

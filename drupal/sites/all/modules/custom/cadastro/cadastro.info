@@ -1,0 +1,13 @@
+name = Cadastro
+description = Simples cadastro de nome e sobrenome
+core = 7.x
+package = Features
+version = 7.x-1.0
+dependencies[] = features
+dependencies[] = text
+features[features_api][] = api:2
+features[field_base][] = field_cadastro_nome
+features[field_base][] = field_cadastro_sobrenome
+features[field_instance][] = node-cadastro-field_cadastro_nome
+features[field_instance][] = node-cadastro-field_cadastro_sobrenome
+features[node][] = cadastro
